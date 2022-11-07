@@ -25,11 +25,6 @@ UPDTOOL="${DIR}/amlogic-usb-tool"
 PART_NAME="$1"
 DUMP_FILE="$2"
 
-if [ ! -d "$BACKUP_DIR" ]; then
-    echo "Could not find: $BACKUP_DIR"
-    exit 1
-fi
-
 $UPDTOOL bulkcmd "amlmmc part 1"
 $UPDTOOL mwrite "$DUMP_FILE" store "$PART_NAME" normal
 
