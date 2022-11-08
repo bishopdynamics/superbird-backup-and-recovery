@@ -1,5 +1,6 @@
 #!/bin/bash
 # create a full backup of superbird device
+#   usage: ./dump-device.sh <backup-name>
 
 # Superbird Partitions:
 
@@ -51,8 +52,6 @@ if [ -n "$1" ]; then
     BACKUP_NAME="custom-${1}-$(date "+%Y%m%d_%H%M%S")"
 fi
 
-BACKUP_FILENAME="${BACKUP_NAME}.tar.gz"  # this is the actual backup file we are creating
-
 DIR=$(dirname "$(realpath "$0")")
 UPDTOOL="${DIR}/amlogic-usb-tool"
 DUMPS_DIR="${DIR}/dumps"  # this folder is .gitignored
@@ -87,25 +86,16 @@ backup_partition() {
 
 ############################################ Entrypoint ###################################################################
 
-announce "Creating Backup: $BACKUP_FILENAME"
+announce "Creating Backup in: $BACKUP_DIR"
 
 # create folders as needed
 mkdir -p "$DUMPS_DIR"
 mkdir "$BACKUP_DIR" || {
-    echo "Error while creating ${BACKUP_NAME}, maybe it already exists?"
+    # since backups include a timestamp, this is incredibly unlikely
+    echo "Error while creating ${BACKUP_DIR}, maybe it already exists?"
     bail
+
 }
-
-if [ -f "${DUMPS_DIR}/${BACKUP_FILENAME}" ]; then
-    # since all backup filenames include timestamp, this is incredibly unlikely
-    echo "A backup file named: ${DUMPS_DIR}/${BACKUP_FILENAME} already exists!"
-    bail
-fi
-
-
-# make sure everything is chowned as non-root user
-#   we just assume that is uid 1000 and gid 1000
-chown -R 1000:1000 "$DUMPS_DIR"
 
 # start dumping stuff
 $UPDTOOL bulkcmd "amlmmc part 1"
@@ -145,4 +135,4 @@ pushd "${BACKUP_DIR}" || bail
 md5sum ./* >checksums.txt
 popd || bail
 
-announce "Finished Creating Backup: $BACKUP_FILENAME"
+announce "Finished Creating Backup: in ${BACKUP_DIR}, please note that it is owned by root!"
